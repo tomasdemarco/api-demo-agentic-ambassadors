@@ -1,0 +1,18 @@
+{
+  "description": "Prueba de humo tras desplegar: alta, consulta, modificación, listado y baja de un comercio sintético.",
+  "steps": [
+    {"name": "estado", "method": "GET", "path": "/health", "expect_status": 200,
+     "expect_json": {"storage": "dynamodb"}},
+    {"name": "alta", "method": "POST", "path": "/merchants",
+     "body": {"name": "Comercio de prueba (smoke)", "mcc": "5411", "country": "AR"},
+     "expect_status": 201, "save": {"id": "id"}},
+    {"name": "consulta", "method": "GET", "path": "/merchants/{id}", "expect_status": 200,
+     "expect_json": {"name": "Comercio de prueba (smoke)"}},
+    {"name": "modificación", "method": "PUT", "path": "/merchants/{id}", "body": {"status": "inactive"},
+     "expect_status": 200, "expect_json": {"status": "inactive"}},
+    {"name": "persistencia", "method": "GET", "path": "/merchants/{id}", "expect_status": 200,
+     "expect_json": {"status": "inactive"}},
+    {"name": "baja", "method": "DELETE", "path": "/merchants/{id}", "expect_status": 204},
+    {"name": "baja confirmada", "method": "GET", "path": "/merchants/{id}", "expect_status": 404}
+  ]
+}
