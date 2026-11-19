@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .domain import Merchant, new_id, now_iso
+from .domain import DuplicateMerchantError, Merchant, new_id, now_iso
 from .ports import MerchantRepository
 
 MAX_LIST = 100
@@ -13,8 +13,15 @@ class MerchantService:
         self.repository = repository
 
     def create(self, fields: dict[str, str]) -> Merchant:
+        name = fields["name"]
+        country = fields["country"]
+
+        existing = self.repository.find_by_name_country(name, country)
+        if existing is not None:
+            raise DuplicateMerchantError(name, country)
+
         ts = now_iso()
-        merchant = Merchant(id=new_id(), name=fields["name"], mcc=fields["mcc"], country=fields["country"],
+        merchant = Merchant(id=new_id(), name=name, mcc=fields["mcc"], country=country,
                             status=fields.get("status", "active"), created_at=ts, updated_at=ts)
         self.repository.put(merchant)
         return merchant

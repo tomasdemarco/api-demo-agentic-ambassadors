@@ -77,6 +77,26 @@ class DynamoDBMerchantRepository:
         )
         return "Attributes" in response
 
+    def find_by_name_country(self, name: str, country: str) -> Merchant | None:
+        """Busca un comercio por nombre normalizado (strip+lower) y país mediante Scan.
+
+        Estrategia: se hace un Scan completo (sin FilterExpression) y se filtra
+        en Python. Esto garantiza compatibilidad con la tabla falsa de pruebas y
+        evita depender de la API interna de boto3.dynamodb.conditions en tests.
+
+        Riesgo documentado: el Scan sin paginación completa puede no encontrar
+        un duplicado si los ítems evaluados superan 1 MB antes de recorrer toda
+        la tabla. Mitigación futura: paginar el Scan o añadir un GSI name+country.
+        """
+        normalized = name.strip().lower()
+        response = self._table.scan()
+        for item in response.get("Items", []):
+            item_name = str(item.get("name", "")).strip().lower()
+            item_country = str(item.get("country", ""))
+            if item_name == normalized and item_country == country:
+                return self._from_item(item)
+        return None
+
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------

@@ -21,3 +21,10 @@ class MerchantRepository(Protocol):
 
     def delete(self, merchant_id: str) -> bool:
         """Elimina el comercio. Devuelve False si no existía."""
+
+    def find_by_name_country(self, name: str, country: str) -> Merchant | None:
+        """Busca un comercio por nombre normalizado (strip+lower) y país.
+
+        Devuelve el primer comercio encontrado o None si no existe ninguno.
+        La normalización (strip().lower()) se aplica en cada adaptador.
+        """

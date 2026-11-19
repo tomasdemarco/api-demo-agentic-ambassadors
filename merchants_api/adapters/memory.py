@@ -27,3 +27,15 @@ class InMemoryMerchantRepository:
     def delete(self, merchant_id: str) -> bool:
         with self._lock:
             return self._items.pop(merchant_id, None) is not None
+
+    def find_by_name_country(self, name: str, country: str) -> Merchant | None:
+        """Devuelve el primer comercio cuyo nombre normalizado y país coincidan, o None.
+
+        La normalización aplicada es strip().lower(), igual que en el adaptador DynamoDB.
+        """
+        normalized = name.strip().lower()
+        with self._lock:
+            for merchant in self._items.values():
+                if merchant.name.strip().lower() == normalized and merchant.country == country:
+                    return merchant
+        return None

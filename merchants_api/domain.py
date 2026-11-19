@@ -27,6 +27,15 @@ def is_valid_id(value: str) -> bool:
     return bool(_ID.fullmatch(value))
 
 
+class DuplicateMerchantError(Exception):
+    """Se lanza cuando ya existe un comercio con el mismo nombre (normalizado) y país."""
+
+    def __init__(self, name: str, country: str) -> None:
+        self.name = name
+        self.country = country
+        super().__init__(f"ya existe un comercio con ese nombre en ese país: name={name!r}, country={country!r}")
+
+
 @dataclass(frozen=True)
 class Merchant:
     id: str
