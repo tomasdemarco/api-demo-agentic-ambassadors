@@ -20,7 +20,7 @@ import os
 from typing import Any
 
 from .adapters import build_repository
-from .domain import is_valid_id, validate
+from .domain import DuplicateMerchantError, is_valid_id, validate
 from .service import MerchantService
 
 MAX_BODY_BYTES = 10_000
@@ -101,7 +101,10 @@ def lambda_handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]
             fields, errors = validate(data)
             if errors:
                 return _response(400, {"error": "solicitud inválida", "details": errors})
-            return _response(201, service.create(fields).to_dict())
+            try:
+                return _response(201, service.create(fields).to_dict())
+            except DuplicateMerchantError:
+                return _response(409, {"error": "ya existe un comercio con ese nombre en ese país"})
         return _response(405, {"error": "método no permitido"})
 
     merchant_id = parts[1]
